@@ -5,7 +5,7 @@ const authSlice = createSlice(
    {
         name : "auth" ,
         initialState : {
-            user : null ,
+            user : JSON.parse(localStorage.getItem('user')) || null ,
             isLoading : false ,
             isError : false ,
             isSuccess : false ,
@@ -28,6 +28,10 @@ const authSlice = createSlice(
                 state.isError = true
                 state.message = action.payload
             })
+            //LOGOUT
+            .addCase(logoutUser.fulfilled , (state , action) => {
+                state.user = null
+            })
         }
    }
 )
@@ -41,6 +45,20 @@ export const signInUser = createAsyncThunk(
 
         try {
             return await authService.register(formData)
+        } catch (error) {
+            const message = error.response.data.message
+            thunkAPI.rejectWithValue(message)
+        }
+
+    }
+)
+
+export const logoutUser = createAsyncThunk(
+    "AUTH/LOGOUT" , 
+    async (formData , thunkAPI) => {
+
+        try {
+            return await authService.logout(formData)
         } catch (error) {
             const message = error.response.data.message
             thunkAPI.rejectWithValue(message)
