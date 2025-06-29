@@ -29,6 +29,12 @@ app.get("/" , (req , res) => {
 //Auth routes
 app.use("/api/auth" , require("./Routes/authRoutes"))
 
+//Income Routes
+app.use("/api/income" , require("./Routes/incomeRoutes") )
+
+//Expense Routes
+app.use("/api/expense" , require("./Routes/expenseRoutes") )
+
 
 
 //Error handler

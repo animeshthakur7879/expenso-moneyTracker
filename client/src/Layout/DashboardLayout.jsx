@@ -7,7 +7,7 @@ const DashboardLayout = () => {
   return (
     <>
       <SidebarComponent />
-      <div className="ml-64 min-h-screen p-4 bg-gray-100">
+      <div className=" md:ml-64 lg:ml-64 min-h-screen p-4 bg-gray-100">
         <Outlet />
       </div>
     </>
