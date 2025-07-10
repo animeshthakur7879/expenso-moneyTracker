@@ -1,7 +1,120 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TrendingUp, DollarSign, CreditCard, Eye, Plus, BarChart3, PieChart, Calendar, Activity, Clock } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { addIncome, getAllIncomes } from '../features/income/incomeSlice';
+import { addExpense, getAllExpenses } from '../features/expense/expenseSlice';
+import { toast } from 'react-toastify';
+import { getallTransactions } from '../features/transaction/transactionSlice';
 
 const Dashboard = () => {
+   const [isOpenIncome, setIsOpenIncome] = useState(false);
+   const [isOpenExpense, setIsOpenExpense] = useState(false);
+
+   const [formData , setFormData] = useState({
+    title : '' , 
+    ammount : ''
+   })
+
+  //  const handleInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [name]: value
+  //   }));
+  // };
+
+  const handleInputChange = (e) => {
+
+    const {name , value} = e.target 
+    setFormData(prev => ({
+      ...prev ,
+      [name] : value
+    }))
+
+  }
+
+  const toggleModal = () => setIsOpenIncome(!isOpenIncome);
+  const toggleModalExp = () => setIsOpenExpense(!isOpenExpense);
+  const closeModal = () => {setIsOpenIncome(false) , setIsOpenExpense(false)};
+
+  const [render , setRender] = useState(false)
+
+  const dispatch = useDispatch()
+
+  const {allIncomes , isLoading , isSuccess} = useSelector(state => state.income) 
+  const {allExpenses } = useSelector(state => state.expense) 
+  const {transactions} = useSelector(state => state.transaction)
+
+  useEffect(() => {
+    dispatch(getAllIncomes())
+    dispatch(getAllExpenses())
+    dispatch(getallTransactions())
+    
+  } , [dispatch , render])
+
+  // console.log(allIncomes)
+  // console.log(allExpenses)
+  console.log(transactions)
+
+  const totalIncome = allIncomes?.reduce((sum , income) => sum + income?.ammount , 0)
+  const totalExpense = allExpenses?.reduce((sum , income) => sum + income?.ammount , 0)
+  const totalBalance = totalIncome-totalExpense
+
+  // const setDetails = () => {
+  //   var totalIncome = allIncomes?.reduce((sum , income) => sum + income?.ammount , 0)
+  //   var totalExpense = allExpenses?.reduce((sum , income) => sum + income?.ammount , 0)
+  //   var totalBalance = totalIncome-totalExpense
+  // }
+
+  //DATE to HOUR
+  const dateToHour = (createdAt) => {
+    const createdDate  = new Date(createdAt)
+  // Get current time in IST
+      const now = new Date();
+
+      // Shift both times to IST by adding 5.5 hours
+      const createdIST = new Date(createdDate.getTime() + (5.5 * 60 * 60 * 1000));
+      const nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+
+      // Calculate difference in milliseconds
+      const diffMs = nowIST - createdIST;
+
+      // Convert milliseconds to hours
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+      return diffHours
+  }
+
+  //Add Income
+  const handleAddIncome = async(e) => {
+    e.preventDefault()
+    // console.log(formData)
+    await dispatch(addIncome(formData))
+    setRender(!render)
+    closeModal()
+    toast.success("Income Added")
+    setFormData({
+      title : '', 
+      ammount : ''
+    })
+  }
+
+  //Add EXPENSE
+  const handleAddExpense = async(e) => {
+    e.preventDefault()
+    // console.log(formData)
+    await dispatch(addExpense(formData))
+    setRender(!render)
+    closeModal()
+    toast.success("Expense Added")
+
+    setFormData({
+      title : '', 
+      ammount : ''
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50/90 to-[#0081A7]/5 p-6 ml-0 sm:ml-0 pt-20">
       {/* Header */}
@@ -24,7 +137,7 @@ const Dashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-500 mb-1">Total Income</p>
-                <p className="text-3xl font-bold text-[#0081A7]">$12,450</p>
+                <p className="text-3xl font-bold text-[#0081A7]">₹{allIncomes?.reduce((sum , income) => sum + income?.ammount , 0)}</p>
               </div>
             </div>
             <div className="flex items-center text-sm">
@@ -44,7 +157,7 @@ const Dashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-500 mb-1">Total Balance</p>
-                <p className="text-3xl font-bold text-[#00B4D8]">$8,720</p>
+                <p className="text-3xl font-bold text-[#00B4D8]">₹{totalBalance}</p>
               </div>
             </div>
             <div className="flex items-center text-sm">
@@ -64,7 +177,7 @@ const Dashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-500 mb-1">Total Expenses</p>
-                <p className="text-3xl font-bold text-red-600">$3,730</p>
+                <p className="text-3xl font-bold text-red-600">₹{totalExpense}</p>
               </div>
             </div>
             <div className="flex items-center text-sm">
@@ -81,11 +194,11 @@ const Dashboard = () => {
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 gap-4">
-            <button className="p-4 bg-gradient-to-r from-[#0081A7] to-[#00B4D8] text-white rounded-xl hover:from-[#0081A7]/90 hover:to-[#00B4D8]/90 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg border border-[#0081A7]/20">
+            <button onClick={toggleModal} className="p-4 bg-gradient-to-r from-[#0081A7] to-[#00B4D8] text-white rounded-xl hover:from-[#0081A7]/90 hover:to-[#00B4D8]/90 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg border border-[#0081A7]/20">
               <Plus className="w-5 h-5 mx-auto mb-2" />
               <span className="text-sm font-medium">Add Income</span>
             </button>
-            <button className="p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
+            <button onClick={toggleModalExp} className="p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
               <CreditCard className="w-5 h-5 mx-auto mb-2" />
               <span className="text-sm font-medium">Add Expense</span>
             </button>
@@ -118,27 +231,46 @@ const Dashboard = () => {
             <Activity className="w-5 h-5 text-[#0081A7]" />
           </div>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg hover:from-[#0081A7]/10 hover:to-[#00B4D8]/10 transition-all duration-200 border border-[#0081A7]/10">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-[#00B4D8] rounded-full mr-3"></div>
-                <span className="text-sm text-gray-700 font-medium">Salary Payment</span>
-              </div>
-              <span className="text-sm font-semibold text-[#00B4D8]">+$2,500</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-red-50/80 rounded-lg hover:bg-red-50 transition-colors duration-200 border border-red-100">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                <span className="text-sm text-gray-700 font-medium">Grocery Shopping</span>
-              </div>
-              <span className="text-sm font-semibold text-red-600">-$125</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg hover:from-[#0081A7]/10 hover:to-[#00B4D8]/10 transition-all duration-200 border border-[#0081A7]/10">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-[#0081A7] rounded-full mr-3"></div>
-                <span className="text-sm text-gray-700 font-medium">Investment Return</span>
-              </div>
-              <span className="text-sm font-semibold text-[#0081A7]">+$340</span>
-            </div>
+            {
+
+              transactions?.length > 0 ? (
+                transactions.slice(0 , 5).map((transaction) => {
+                    return (
+                      transaction.isIncome ? (
+                         <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg hover:from-[#0081A7]/10 hover:to-[#00B4D8]/10 transition-all duration-200 border border-[#0081A7]/10">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-[#00B4D8] rounded-full mr-3"></div>
+                            <span className="text-sm text-gray-700 font-medium">{transaction?.income?.title}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-[#00B4D8]">+₹{transaction?.income?.ammount}</span>
+                        </div>
+                      )
+                      : (
+                        <div className="flex items-center justify-between p-3 bg-red-50/80 rounded-lg hover:bg-red-50 transition-colors duration-200 border border-red-100">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                            <span className="text-sm text-gray-700 font-medium">{transaction?.expense?.title}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-red-600">-₹{transaction?.expense?.ammount}</span>
+                        </div>
+                      )
+                       
+                    )
+                })
+              )
+              : (<div className="flex flex-col items-center justify-center gap-2 p-6 bg-red-50/50 border border-red-200 rounded-xl shadow-sm">
+                  <Activity className="w-8 h-8 text-red-400" />
+                  <h1 className="text-xl font-semibold text-gray-700">No Recent Activity yet</h1>
+                  <p className="text-sm text-gray-500">Start Adding your transaction to see them here.</p>
+                </div>)
+
+            }
+            
+
+
+            
+            
+            
           </div>
         </div>
       </div>
@@ -152,42 +284,34 @@ const Dashboard = () => {
             <Clock className="w-5 h-5 text-[#0081A7]" />
           </div>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-red-50/80 rounded-lg hover:bg-red-50 transition-colors duration-200 border border-red-100">
-              <div className="flex items-center">
-                <div className="p-2 bg-red-100 rounded-lg mr-3">
-                  <CreditCard className="w-4 h-4 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Online Shopping</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-red-600">-$89.99</span>
+            
+            {
+              allExpenses?.length>0 ? allExpenses?.slice(0,4).map((expense) => {
+              
+                return(
+                  <div key={expense._id} className="flex items-center justify-between p-3 bg-red-50/80 rounded-lg hover:bg-red-50 transition-colors duration-200 border border-red-100">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-red-100 rounded-lg mr-3">
+                        <CreditCard className="w-4 h-4 text-red-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">{expense?.title}</p>
+                        <p className="text-xs text-gray-500">{dateToHour(expense?.createdAt)} hours ago</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-red-600">-₹{expense?.ammount}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-red-50/80 rounded-lg hover:bg-red-50 transition-colors duration-200 border border-red-100">
-              <div className="flex items-center">
-                <div className="p-2 bg-red-100 rounded-lg mr-3">
-                  <CreditCard className="w-4 h-4 text-red-600" />
+                )
+              }) : (
+                <div className="flex flex-col items-center justify-center gap-2 p-6 bg-red-50/50 border border-red-200 rounded-xl shadow-sm">
+                  <CreditCard className="w-8 h-8 text-red-400" />
+                  <h1 className="text-xl font-semibold text-gray-700">No transaction yet</h1>
+                  <p className="text-sm text-gray-500">Start adding your expenses to see them here.</p>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Restaurant Bill</p>
-                  <p className="text-xs text-gray-500">Yesterday</p>
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-red-600">-$45.50</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-red-50/80 rounded-lg hover:bg-red-50 transition-colors duration-200 border border-red-100">
-              <div className="flex items-center">
-                <div className="p-2 bg-red-100 rounded-lg mr-3">
-                  <CreditCard className="w-4 h-4 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Gas Station</p>
-                  <p className="text-xs text-gray-500">2 days ago</p>
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-red-600">-$55.00</span>
-            </div>
+              )
+            }
+            
+            
           </div>
         </div>
 
@@ -220,7 +344,150 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+{/*Indome Modal */}
+      {isOpenIncome && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/70 w-full max-w-md p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition"
+            >
+              <svg
+                className="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Modal Header */}
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+              Add New Entry
+            </h3>
+
+            {/* Modal Form */}
+            <form onSubmit={(e) => handleAddIncome(e)} className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="Enter title"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                  Ammount
+                </label>
+                <input
+                  type="text"
+                  id="ammount"
+                  name="ammount"
+                  value={formData.ammount}
+                  onChange={handleInputChange}
+                  placeholder="Enter title"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#0081A7] to-[#00B4D8] hover:from-[#0081A7]/90 hover:to-[#00B4D8]/90 text-white font-medium py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
+              >
+                Add Income
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+{/*Expense Modal */}
+
+{isOpenExpense && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/70 w-full max-w-md p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition"
+            >
+              <svg
+                className="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Modal Header */}
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+              Add New Entry
+            </h3>
+
+            {/* Modal Form */}
+            <form onSubmit={(e) => handleAddExpense(e)} className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="Enter title"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                  Ammount
+                </label>
+                <input
+                  type="text"
+                  id="ammount"
+                  name="ammount"
+                  value={formData.ammount}
+                  onChange={handleInputChange}
+                  placeholder="Enter title"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
+              >
+                Add Expense
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
+    
   );
 };
 

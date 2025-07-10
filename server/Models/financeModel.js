@@ -7,18 +7,22 @@ const financeSchema = new mongoose.Schema(
             ref : 'User' ,
             required : true
         } ,
-        totalIncome : {
-            type : Number,
-            default : 0
+        income : {
+            type : mongoose.Schema.Types.ObjectId ,
+            ref : 'Income' ,
+            default : null
+            
         } ,
-        totalExpense : {
-            type : Number,
-            default : 0
+        expense : {
+            type : mongoose.Schema.Types.ObjectId ,
+            ref : 'Expense' ,
+            default : null
         } ,
-        balance : {
-            type : Number,
-            default : 0
+        isIncome : {
+            type : Boolean ,
+            default : true
         }
+        
     } , 
     {
         timestamps : true

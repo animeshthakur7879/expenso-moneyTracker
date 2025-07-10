@@ -1,6 +1,7 @@
 const expressAsyncHandler = require("express-async-handler")
 const Income = require("../Models/incomeModel")
 const User = require("../Models/userModel")
+const Finance = require("../Models/financeModel")
 
 
 const getAllIncomes = expressAsyncHandler(async(req , res) => {
@@ -32,6 +33,11 @@ const addIncome = expressAsyncHandler(async(req , res) => {
         res.status(400)
         throw new Error("Error in adding income")
     }
+
+    const finance = await Finance.create({
+        user : req.user._id , income : income._id
+    })
+    
 
     res.status(200).json(income)
 

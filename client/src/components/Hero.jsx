@@ -16,6 +16,7 @@ const Hero = () => {
       name : user.displayName ,
       email : user.email
     }
+   
     dispatch(signInUser(formData))
     
   }

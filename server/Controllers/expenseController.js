@@ -1,10 +1,11 @@
 const expressAsyncHandler = require("express-async-handler")
 const Expense = require("../Models/expenseModel")
-
+const User = require("../Models/userModel")
+const Finance = require("../Models/financeModel")
 
 const getAllExpenses = expressAsyncHandler(async(req , res) => {
 
-    const expense = await Expense.find({user : req.user._id})
+    const expense = await Expense.find({user : req.user._id}).sort({ createdAt: -1 });
     if(!expense) {
         res.status(400)
         throw new Error ("No expenses found for the user")
@@ -31,6 +32,10 @@ const addExpense =  expressAsyncHandler(async(req , res) => {
         res.status(400)
         throw new Error("Error in adding expense")
     }
+
+    const finance = await Finance.create({
+            user : req.user._id , expense : expense._id , isIncome : false
+        })
 
     res.status(200).json(expense)
 

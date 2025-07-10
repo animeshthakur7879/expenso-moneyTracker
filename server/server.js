@@ -35,6 +35,9 @@ app.use("/api/income" , require("./Routes/incomeRoutes") )
 //Expense Routes
 app.use("/api/expense" , require("./Routes/expenseRoutes") )
 
+//Fincance Routes 
+app.use("/api/finance" , require("./Routes/financeRoutes") )
+
 
 
 //Error handler
