@@ -71,13 +71,18 @@ const updateIncome = expressAsyncHandler(async(req , res) => {
 const deleteIncome = expressAsyncHandler(async(req , res) => {
 
     const incomeId = req.params.iid
+    const finance = await Finance.findOne({income : incomeId})
+    // console.log(finance)
 
     const deletedIncome = await Income.findByIdAndDelete(incomeId)
+    const deletedFinance = await Finance.findByIdAndDelete(finance._id)
 
     if(!deletedIncome){
         res.status(400)
         throw new Error("Error in deleting income")
     }
+
+    // console.log(deletedFinance)
 
     res.status(200).json(deletedIncome)
 

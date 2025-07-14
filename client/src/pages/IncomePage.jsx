@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { TrendingUp, Plus, Calendar, Search, Filter, Download, Edit2, Trash2, Eye, BarChart3, PieChart, DollarSign } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addIncome, getAllIncomes, updateIncome } from '../features/income/incomeSlice';
+import { addIncome, deleteIncome, getAllIncomes, updateIncome } from '../features/income/incomeSlice';
 import { toast } from 'react-toastify';
 
 const IncomePage = () => {
@@ -14,6 +14,7 @@ const IncomePage = () => {
     title: '',
     ammount: '',
   });
+  const [isOpenDelete, setIsOpenDelete] = useState(false);
 
   const dispatch = useDispatch()
   const {allIncomes , isLoading , isSuccess} = useSelector(state => state.income) 
@@ -28,13 +29,13 @@ const IncomePage = () => {
   } , [dispatch , render])
 
   // Mock data - replace with your actual data
-  const incomeData = [
-    { id: 1, title: 'Salary', ammount: 50000, category: 'Job', date: '2024-07-10', description: 'Monthly salary' },
-    { id: 2, title: 'Freelance Project', ammount: 15000, category: 'Freelance', date: '2024-07-08', description: 'Web development project' },
-    { id: 3, title: 'Investment Returns', ammount: 8000, category: 'Investment', date: '2024-07-05', description: 'Stock dividends' },
-    { id: 4, title: 'Side Business', ammount: 12000, category: 'Business', date: '2024-07-03', description: 'Online store profits' },
-    { id: 5, title: 'Bonus', ammount: 20000, category: 'Job', date: '2024-07-01', description: 'Performance bonus' },
-  ];
+  // const incomeData = [
+  //   { id: 1, title: 'Salary', ammount: 50000, category: 'Job', date: '2024-07-10', description: 'Monthly salary' },
+  //   { id: 2, title: 'Freelance Project', ammount: 15000, category: 'Freelance', date: '2024-07-08', description: 'Web development project' },
+  //   { id: 3, title: 'Investment Returns', ammount: 8000, category: 'Investment', date: '2024-07-05', description: 'Stock dividends' },
+  //   { id: 4, title: 'Side Business', ammount: 12000, category: 'Business', date: '2024-07-03', description: 'Online store profits' },
+  //   { id: 5, title: 'Bonus', ammount: 20000, category: 'Job', date: '2024-07-01', description: 'Performance bonus' },
+  // ];
 
   const categories = ['Job', 'Freelance', 'Investment', 'Business', 'Other'];
 
@@ -47,18 +48,18 @@ const IncomePage = () => {
   };
 
   const toggleModal = () => setIsOpenModal(!isOpenModal);
-  const closeModal = () => {setIsOpenModal(false) , setIsEdit(false) , setFormData({title : '' , ammount : ''}) };
+  const closeModal = () => {setIsOpenModal(false) , setIsEdit(false) , setFormData({title : '' , ammount : ''}) , setIsOpenDelete(false)};
 
   //ADD INCOME 
 
   const handleAddIncome = async(e) => {
       e.preventDefault()
-      // console.log(formData)
+      console.log(formData)
       if(!isEdit){
         await dispatch(addIncome(formData))
-        setIsEdit(false)
       }else{
         await dispatch(updateIncome({formData , iid : selectedIncome._id}))
+        setIsEdit(false)
       }
       setRender(!render)
       closeModal()
@@ -84,6 +85,19 @@ const IncomePage = () => {
       // console.log(formData)
       toggleModal();
 
+    }
+
+    //Deleet Income
+    const handleDelete = (income) => {
+        setIsOpenDelete(!isOpenDelete)
+        setSelectedIncome(income)
+        // console.log(selectedIncome)
+    }
+
+    const handleDeleteIncome = async() => {
+      closeModal()
+      await dispatch(deleteIncome(selectedIncome._id))
+      toast.success("Income Deleted")
     }
 
   const totalIncome = allIncomes?.reduce((sum, income) => sum + income.ammount, 0);
@@ -172,7 +186,7 @@ const filteredIncomes = allIncomes
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-500 mb-1">Total Income</p>
-                <p className="text-3xl font-bold text-[#0081A7]">₹{totalIncome.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-[#0081A7]">₹{totalIncome?.toLocaleString()}</p>
               </div>
             </div>
             <div className="flex items-center text-sm">
@@ -312,17 +326,15 @@ const filteredIncomes = allIncomes
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(income.createdAt).toLocaleDateString()}
-                    <div className="text-xs text-gray-400">{dateToHour(income.date)} hours ago</div>
+                    <div className="text-xs text-gray-400">{dateToHour(income.updatedAt)} hours ago</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
-                      <button className="text-[#0081A7] hover:text-[#00B4D8] transition-colors duration-200">
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      
                       <button onClick={(e) => handleEdit(income)} className="text-[#00B4D8] hover:text-[#0081A7] transition-colors duration-200">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button className="text-red-600 hover:text-red-700 transition-colors duration-200">
+                      <button onClick={(e) => handleDelete(income)} className="text-red-600 hover:text-red-700 transition-colors duration-200">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -403,6 +415,65 @@ const filteredIncomes = allIncomes
               >
                 {isEdit ? "Update Income" : "Add Income"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/*Delete income modal */}
+      {isOpenDelete && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/70 w-full max-w-md p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition"
+            >
+              <svg
+                className="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Modal Content */}
+            <div className="text-center">
+              {/* Warning Icon */}
+              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 20 20">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </div>
+              
+              {/* Modal Header */}
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                Delete Income
+              </h3>
+              
+              {/* Modal Message */}
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this income? This action cannot be undone.
+              </p>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteIncome}
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 transition-all shadow-md hover:shadow-lg"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -49,6 +49,24 @@ const incomeSLice = createSlice(
                 state.isError = true
                 state.message = action.payload
             })
+            //DELETE INCOME CASE
+            .addCase(deleteIncome.pending , (state , action)    => {
+                state.isLoading = true
+                state.isSuccess = false 
+                state.isError = false
+            })
+            .addCase(deleteIncome.fulfilled , (state , action)    => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.allIncomes = state.allIncomes.filter(income => income._id != action.payload._id)
+                state.isError = false
+            })
+            .addCase(deleteIncome.rejected , (state , action)    => {
+                state.isLoading = false
+                state.isSuccess = false 
+                state.isError = true
+                state.message = action.payload
+            })
         }
     }
 )
@@ -92,6 +110,23 @@ export const updateIncome = createAsyncThunk(
         // console.log(formData , iid)
         try {
             return await incomeService.updateIncome(formData , iid ,  token)
+        } catch (error) {
+            const message = error.response.data.message
+            thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
+
+//DELETE INCOME
+
+export const deleteIncome = createAsyncThunk(
+    "DELETE/INCOME" , 
+    async (iid , thunkAPI) => {
+        let token = thunkAPI.getState().auth.user.token
+        // console.log(formData , iid)
+        try {
+            return await incomeService.deleteIncome(iid ,  token)
         } catch (error) {
             const message = error.response.data.message
             thunkAPI.rejectWithValue(message)

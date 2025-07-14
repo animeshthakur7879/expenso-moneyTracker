@@ -55,7 +55,7 @@ const Dashboard = () => {
 
   // console.log(allIncomes)
   // console.log(allExpenses)
-  // console.log(transactions)
+  console.log(transactions)
 
   const totalIncome = allIncomes?.reduce((sum , income) => sum + income?.ammount , 0)
   const totalExpense = allExpenses?.reduce((sum , income) => sum + income?.ammount , 0)
