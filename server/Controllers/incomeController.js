@@ -46,7 +46,7 @@ const addIncome = expressAsyncHandler(async(req , res) => {
 
 const updateIncome = expressAsyncHandler(async(req , res) => {
 
-    const {title , description} = req.body
+    // const {title , description} = req.body
     const incomeId = req.params.iid
 
     const income = await Income.findById(incomeId)

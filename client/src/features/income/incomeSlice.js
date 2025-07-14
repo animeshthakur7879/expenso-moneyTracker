@@ -83,3 +83,19 @@ export const addIncome = createAsyncThunk(
     }
 )
 
+//UPDATE INCOME
+
+export const updateIncome = createAsyncThunk(
+    "UPDATE/INCOME" , 
+    async ({formData , iid} , thunkAPI) => {
+        let token = thunkAPI.getState().auth.user.token
+        // console.log(formData , iid)
+        try {
+            return await incomeService.updateIncome(formData , iid ,  token)
+        } catch (error) {
+            const message = error.response.data.message
+            thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
