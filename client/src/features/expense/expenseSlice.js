@@ -49,6 +49,24 @@ const expenseSlice = createSlice(
                 state.isError = true
                 state.message = action.payload
             })
+            //DELETE EXPENSE CASE
+            .addCase(deleteExpense.pending , (state , action)    => {
+                state.isLoading = true
+                state.isSuccess = false 
+                state.isError = false
+            })
+            .addCase(deleteExpense.fulfilled , (state , action)    => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.allExpenses = state.allExpenses.filter(expense => expense._id != action.payload._id)
+                state.isError = false
+            })
+            .addCase(deleteExpense.rejected , (state , action)    => {
+                state.isLoading = false
+                state.isSuccess = false 
+                state.isError = true
+                state.message = action.payload
+            })
         }
     }
 )
@@ -76,6 +94,39 @@ export const addExpense = createAsyncThunk(
         let token = thunkAPI.getState().auth.user.token
         try {
             return await expenseService.addExpense(formData , token)
+        } catch (error) {
+            const message = error.response.data.message
+            thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
+//UPDATE EXPENSE
+
+export const updateExpense = createAsyncThunk(
+    "UPDATE/EXPENSE" , 
+    async ({formData , eid} , thunkAPI) => {
+        let token = thunkAPI.getState().auth.user.token
+        // console.log(formData , iid)
+        try {
+            return await expenseService.updateExpense(formData , eid ,  token)
+        } catch (error) {
+            const message = error.response.data.message
+            thunkAPI.rejectWithValue(message)
+        }
+    }
+)
+
+
+//DELETE INCOME
+
+export const deleteExpense = createAsyncThunk(
+    "DELETE/EXPENSE" , 
+    async (eid , thunkAPI) => {
+        let token = thunkAPI.getState().auth.user.token
+        // console.log(formData , iid)
+        try {
+            return await expenseService.deleteExpense(eid ,  token)
         } catch (error) {
             const message = error.response.data.message
             thunkAPI.rejectWithValue(message)

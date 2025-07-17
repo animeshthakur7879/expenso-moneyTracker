@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, Plus, Calendar, Search, Filter, Download, Edit2, Trash2, Eye, BarChart3, PieChart, DollarSign } from 'lucide-react';
+import { TrendingUp, Plus, Calendar, Search, Filter, Download, Edit2, Trash2, Eye, BarChart3, PieChart, DollarSign, IndianRupee } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addIncome, deleteIncome, getAllIncomes, updateIncome } from '../features/income/incomeSlice';
 import { toast } from 'react-toastify';
@@ -312,7 +312,7 @@ const filteredIncomes = allIncomes
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-gradient-to-r from-[#0081A7]/10 to-[#00B4D8]/10 rounded-lg flex items-center justify-center mr-3">
-                        <DollarSign className="w-5 h-5 text-[#0081A7]" />
+                        <TrendingUp className="w-5 h-5 text-[#0081A7]" />
                       </div>
                       <div>
                         <div className="text-sm font-medium text-gray-900">{income?.title}</div>

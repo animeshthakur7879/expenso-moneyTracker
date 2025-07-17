@@ -69,8 +69,12 @@ const updateExpense =  expressAsyncHandler(async(req , res) => {
 const deleteExpense =expressAsyncHandler(async(req , res) => {
 
     const expenseId = req.params.eid
+    const finance = await Finance.findOne({expense : expenseId})
+    
 
     const deletedexpense = await Expense.findByIdAndDelete(expenseId)
+    const deletedFinance = await Finance.findByIdAndDelete(finance._id)
+    
 
     if(!deletedexpense){
         res.status(400)

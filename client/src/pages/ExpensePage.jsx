@@ -1,31 +1,63 @@
 import React, { useState } from 'react';
 import { TrendingDown, Plus, Calendar, Search, Filter, Download, Edit2, Trash2, Eye, BarChart3, PieChart, CreditCard, AlertCircle } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { addExpense, deleteExpense, getAllExpenses, updateExpense } from '../features/expense/expenseSlice';
+import { toast } from 'react-toastify';
 
 const ExpensePage = () => {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [sortBy, setSortBy] = useState('date');
+  const [selectedExpense , setSelectedExpense] = useState()
   
   const [formData, setFormData] = useState({
     title: '',
     ammount: '',
-    category: '',
-    description: ''
+  
   });
 
-  // Mock data - replace with your actual data
-  const expenseData = [
-    { id: 1, title: 'Groceries', ammount: 5000, category: 'Food', date: '2024-07-10', description: 'Monthly grocery shopping' },
-    { id: 2, title: 'Rent', ammount: 25000, category: 'Housing', date: '2024-07-08', description: 'Monthly rent payment' },
-    { id: 3, title: 'Electricity Bill', ammount: 3500, category: 'Utilities', date: '2024-07-05', description: 'Monthly electricity bill' },
-    { id: 4, title: 'Car Maintenance', ammount: 8000, category: 'Transportation', date: '2024-07-03', description: 'Car service and repairs' },
-    { id: 5, title: 'Internet Bill', ammount: 2000, category: 'Utilities', date: '2024-07-01', description: 'Monthly internet subscription' },
-    { id: 6, title: 'Dining Out', ammount: 3000, category: 'Food', date: '2024-06-30', description: 'Restaurant expenses' },
-    { id: 7, title: 'Medical Checkup', ammount: 4500, category: 'Healthcare', date: '2024-06-28', description: 'Annual health checkup' },
-  ];
+    const [isOpenDelete, setIsOpenDelete] = useState(false);
+  
 
-  const categories = ['Food', 'Housing', 'Transportation', 'Utilities', 'Healthcare', 'Entertainment', 'Shopping', 'Other'];
+  const {allExpenses} = useSelector(state => state.expense)
+
+    const [render , setRender] = useState(false)
+    const [isEdit , setIsEdit] = useState(false)
+
+  const dispatch = useDispatch()
+
+  //Fetching all expense
+  useEffect(() => {
+    dispatch(getAllExpenses())
+  } , [dispatch , render])
+
+  // console.log(allExpenses)
+
+  const handleAddExpense = async(e) => {
+        e.preventDefault()
+        console.log(formData)
+        if(!isEdit){
+          await dispatch(addExpense(formData))
+        }
+        else{
+          await dispatch(updateExpense({formData , eid : selectedExpense._id}))
+          setIsEdit(false)
+        }
+        setRender(!render)
+        closeModal()
+        toast.success("Expense Added")
+        setFormData({
+          title : '', 
+          ammount : ''
+        })
+        // setIsEdit(false)
+      }
+
+  // Mock data - replace with your actual data
+
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -36,23 +68,25 @@ const ExpensePage = () => {
   };
 
   const toggleModal = () => setIsOpenModal(!isOpenModal);
-  const closeModal = () => setIsOpenModal(false);
+  const closeModal = () => {setIsOpenModal(false) , setFormData({title : "" , ammount : "" }) , setIsOpenDelete(false)};
 
-  const handleAddExpense = () => {
-    console.log('Adding expense:', formData);
-    // Add your expense logic here
-    closeModal();
-    setFormData({
-      title: '',
-      ammount: '',
-      category: '',
-      description: ''
-    });
-  };
+const handleEdit = (expense) => {
+      setFormData({
+        title : expense.title , 
+        ammount : expense.ammount
+      })
 
-  const totalExpense = expenseData.reduce((sum, expense) => sum + expense.ammount, 0);
-  const thisMonthExpense = expenseData.filter(expense => 
-    new Date(expense.date).getMonth() === new Date().getMonth()
+      setIsEdit(true)
+      setSelectedExpense(expense)
+
+      // console.log(formData)
+      toggleModal();
+
+}
+
+  const totalExpense = allExpenses.reduce((sum, expense) => sum + expense.ammount, 0);
+  const thisMonthExpense = allExpenses.filter(expense => 
+    new Date(expense.createdAt).getMonth() === new Date().getMonth()
   ).reduce((sum, expense) => sum + expense.ammount, 0);
 
   const dateToHour = (date) => {
@@ -63,23 +97,65 @@ const ExpensePage = () => {
     return diffHours;
   };
 
-  const filteredExpenses = expenseData.filter(expense => 
-    expense.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    expense.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredExpenses = allExpenses?.filter(expense => 
+  //   expense.title.toLowerCase().includes(searchTerm.toLowerCase()) 
+  // );
 
-  const getCategoryIcon = (category) => {
-    switch(category) {
-      case 'Food': return '🍽️';
-      case 'Housing': return '🏠';
-      case 'Transportation': return '🚗';
-      case 'Utilities': return '⚡';
-      case 'Healthcare': return '🏥';
-      case 'Entertainment': return '🎬';
-      case 'Shopping': return '🛍️';
-      default: return '💳';
+   const now = new Date();
+
+
+  const filteredExpenses = allExpenses
+  ?.filter((expense) => {
+    // ✅ Search Filter
+    const matchesSearch = expense?.title?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // ✅ Period Filter
+    const createdAt = new Date(expense?.createdAt);
+    let matchesPeriod = true;
+
+    if (filterPeriod === "today") {
+      matchesPeriod =
+        createdAt.toDateString() === now.toDateString();
+    } else if (filterPeriod === "week") {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+      matchesPeriod = createdAt >= startOfWeek;
+    } else if (filterPeriod === "month") {
+      matchesPeriod =
+        createdAt.getMonth() === now.getMonth() &&
+        createdAt.getFullYear() === now.getFullYear();
+    } else if (filterPeriod === "year") {
+      matchesPeriod = createdAt.getFullYear() === now.getFullYear();
     }
-  };
+
+    return matchesSearch && matchesPeriod;
+  })
+  ?.sort((a, b) => {
+    // ✅ Sorting
+    if (sortBy === "amount") {
+      return b.ammount - a.ammount;
+    } else if (sortBy === "date") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else {
+      return 0;
+    }
+  });
+
+  //DELETE 
+  const handleDelete = (expense) => {
+
+    setIsOpenDelete(true)
+    setSelectedExpense(expense)
+
+  }
+
+  const handleDeleteExpense = async() => {
+        closeModal()
+        await dispatch(deleteExpense(selectedExpense._id))
+        toast.success("Expense Deleted")
+      }
+ 
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50/90 to-red-50/20 p-6 ml-0 sm:ml-0 pt-20">
@@ -114,7 +190,7 @@ const ExpensePage = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-500 mb-1">Total Expenses</p>
-                <p className="text-3xl font-bold text-red-600">₹{totalExpense.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-red-600">₹{totalExpense?.toLocaleString()}</p>
               </div>
             </div>
             <div className="flex items-center text-sm">
@@ -134,7 +210,7 @@ const ExpensePage = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-500 mb-1">This Month</p>
-                <p className="text-3xl font-bold text-orange-600">₹{thisMonthExpense.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-orange-600">₹{thisMonthExpense?.toLocaleString()}</p>
               </div>
             </div>
             <div className="flex items-center text-sm">
@@ -154,7 +230,7 @@ const ExpensePage = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-500 mb-1">Average Expense</p>
-                <p className="text-3xl font-bold text-yellow-600">₹{Math.round(totalExpense / expenseData.length).toLocaleString()}</p>
+                <p className="text-3xl font-bold text-yellow-600">₹{Math.round(totalExpense / allExpenses?.length).toLocaleString()}</p>
               </div>
             </div>
             <div className="flex items-center text-sm">
@@ -208,7 +284,6 @@ const ExpensePage = () => {
             >
               <option value="date">Sort by Date</option>
               <option value="amount">Sort by Amount</option>
-              <option value="category">Sort by Category</option>
             </select>
           </div>
 
@@ -231,47 +306,40 @@ const ExpensePage = () => {
             <thead className="bg-gradient-to-r from-red-50 to-pink-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200/50">
-              {filteredExpenses.map((expense) => (
+              {filteredExpenses?.map((expense) => (
                 <tr key={expense.id} className="hover:bg-red-50/50 transition-all duration-200">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mr-3 text-lg">
-                        {getCategoryIcon(expense.category)}
+                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3 text-lg">
+                        <TrendingDown className="w-5 h-5 text-red-600" />
                       </div>
+                     
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{expense.title}</div>
-                        <div className="text-sm text-gray-500">{expense.description}</div>
+                        <div className="text-sm font-medium text-gray-900">{expense?.title}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                      {expense.category}
-                    </span>
-                  </td>
+                  
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-600">
-                    -₹{expense.ammount.toLocaleString()}
+                    -₹{expense?.ammount?.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(expense.date).toLocaleDateString()}
-                    <div className="text-xs text-gray-400">{dateToHour(expense.date)} hours ago</div>
+                    {new Date(expense?.createdAt).toLocaleDateString()}
+                    <div className="text-xs text-gray-400">{dateToHour(expense?.createdAt)} hours ago</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
-                      <button className="text-blue-600 hover:text-blue-700 transition-colors duration-200">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="text-yellow-600 hover:text-yellow-700 transition-colors duration-200">
+                     
+                      <button onClick={(e) => handleEdit(expense)} className="text-yellow-600 hover:text-yellow-700 transition-colors duration-200">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button className="text-red-600 hover:text-red-700 transition-colors duration-200">
+                      <button onClick={(e) => handleDelete(expense)} className="text-red-600 hover:text-red-700 transition-colors duration-200">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -305,7 +373,9 @@ const ExpensePage = () => {
 
             {/* Modal Header */}
             <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-              Add New Expense
+              {
+                isEdit ? "Update Income" : "Add New Expense"
+              }
             </h3>
 
             {/* Modal Form */}
@@ -320,30 +390,12 @@ const ExpensePage = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="Enter expense title"
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-gray-50 text-gray-800"
+                  placeholder="Enter income title"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
                   required
                 />
               </div>
 
-              <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-                  Category
-                </label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-gray-50 text-gray-800"
-                  required
-                >
-                  <option value="">Select category</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
 
               <div>
                 <label htmlFor="ammount" className="block text-sm font-medium text-gray-700">
@@ -356,23 +408,8 @@ const ExpensePage = () => {
                   value={formData.ammount}
                   onChange={handleInputChange}
                   placeholder="Enter amount"
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-gray-50 text-gray-800"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
                   required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Enter description (optional)"
-                  rows={3}
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/50 bg-gray-50 text-gray-800"
                 />
               </div>
 
@@ -381,12 +418,72 @@ const ExpensePage = () => {
                 onClick={handleAddExpense}
                 className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
               >
-                Add Expense
+                {isEdit ? "Update Expense" : "Add Expense"}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/*Delete income modal */}
+      {isOpenDelete && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/70 w-full max-w-md p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition"
+            >
+              <svg
+                className="w-5 h-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Modal Content */}
+            <div className="text-center">
+              {/* Warning Icon */}
+              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 20 20">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </div>
+              
+              {/* Modal Header */}
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                Delete Expense
+              </h3>
+              
+              {/* Modal Message */}
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this Expense? This action cannot be undone.
+              </p>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteExpense}
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 transition-all shadow-md hover:shadow-lg"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
