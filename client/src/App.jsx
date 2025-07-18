@@ -1,31 +1,31 @@
-import React from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import Home from './pages/Home'
-import Dashboard from './pages/Dashboard'
-import IncomePage from './pages/IncomePage'
-import ExpensePage from './pages/ExpensePage'
-import DashboardLayout from './Layout/DashboardLayout'
+import React from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import IncomePage from './pages/IncomePage';
+import ExpensePage from './pages/ExpensePage';
+import DashboardLayout from './Layout/DashboardLayout';
+import PrivateRoute from '../src/components/PrivateRoutes';
 
 const App = () => {
-  return (
-    <div>
-      <BrowserRouter>
+  return (
+    <BrowserRouter>
+      <Routes>
 
-          <Routes>
+        <Route path="/" element={<Home />} />
 
-              <Route path='/' element={<Home/>} />
-              <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<Dashboard/>} /> {/* / */}
-                <Route path="income" element={<IncomePage />} />
-                <Route path="expenses" element={<ExpensePage />} />
-              </Route>
+        {/* Protected Routes */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="income" element={<IncomePage />} />
+            <Route path="expenses" element={<ExpensePage />} />
+          </Route>
+        </Route>
 
+      </Routes>
+    </BrowserRouter>
+  );
+};
 
-          </Routes>
-
-      </BrowserRouter>
-    </div>
-  )
-}
-
-export default App
+export default App;

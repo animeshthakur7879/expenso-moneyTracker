@@ -1,8 +1,26 @@
 import { WalletMinimal, Menu, X } from 'lucide-react';
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { auth, provider } from '../Firebase/firebase';
+import { signInWithPopup } from 'firebase/auth';
+import { signInUser } from '../features/auth/authSlice';
 
 const NavbarPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const dispatch = useDispatch()
+
+  const handleGoogleLogin = async() => {
+    const response = await signInWithPopup(auth , provider)
+    const user = response.user
+    const formData = {
+      name : user.displayName ,
+      email : user.email
+    }
+   
+    dispatch(signInUser(formData))
+    
+  }
 
   return (
     <nav className="border-b border-gray-200/50 bg-white/80 backdrop-blur-md shadow-sm z-50 sticky top-0">
@@ -29,6 +47,7 @@ const NavbarPage = () => {
         {/* Desktop Sign In Button */}
         <div className="hidden md:flex space-x-3">
           <button
+            onClick={handleGoogleLogin}
             type="button"
             className="group relative text-white bg-gradient-to-r from-[#0081A7] to-[#00B4D8] hover:from-[#006B8A] hover:to-[#0096C7] focus:ring-4 focus:outline-none focus:ring-[#0081A7]/30 font-medium rounded-xl text-sm px-6 py-3 text-center inline-flex items-center shadow-lg hover:shadow-xl hover:shadow-[#0081A7]/20 transition-all duration-300 hover:scale-105 border border-[#0081A7]/20"
           >
@@ -55,6 +74,7 @@ const NavbarPage = () => {
       {isMenuOpen && (
         <div className="md:hidden px-4 pb-4">
           <button
+          onClick={handleGoogleLogin}
             type="button"
             className="group w-full text-white bg-gradient-to-r from-[#0081A7] to-[#00B4D8] hover:from-[#006B8A] hover:to-[#0096C7] focus:ring-4 focus:outline-none focus:ring-[#0081A7]/30 font-medium rounded-xl text-sm px-6 py-3 text-center inline-flex items-center justify-center shadow-lg hover:shadow-xl hover:shadow-[#0081A7]/20 transition-all duration-300 hover:scale-105 border border-[#0081A7]/20"
           >
