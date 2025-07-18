@@ -8,22 +8,19 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
 const BarChart = ({ labels, values }) => {
   const data = {
     labels,
     datasets: [{
       label: 'Expenses (Last 30 Days)',
       data: values,
-      backgroundColor: '#FF6384',
+      backgroundColor: 'rgba(220, 38, 38, 0.8)',
       borderRadius: 6,
-      hoverBackgroundColor: '#FF6384CC',
+      hoverBackgroundColor: 'rgba(220, 38, 38, 0.9)',
       borderWidth: 0,
     }]
   };
-
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -32,10 +29,10 @@ const BarChart = ({ labels, values }) => {
         display: false
       },
       tooltip: {
-        backgroundColor: 'rgba(255, 99, 132, 0.9)',
+        backgroundColor: 'rgba(220, 38, 38, 0.95)',
         titleColor: '#fff',
         bodyColor: '#fff',
-        borderColor: '#FF6384',
+        borderColor: 'rgba(220, 38, 38, 1)',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: false,
@@ -63,7 +60,7 @@ const BarChart = ({ labels, values }) => {
       y: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(255, 99, 132, 0.1)',
+          color: 'rgba(220, 38, 38, 0.1)',
           drawBorder: false
         },
         ticks: {
@@ -82,12 +79,10 @@ const BarChart = ({ labels, values }) => {
       easing: 'easeInOutQuart'
     }
   };
-
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <Bar data={data} options={options} />
     </div>
   );
 };
-
 export default BarChart;

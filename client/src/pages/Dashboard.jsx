@@ -378,33 +378,66 @@ const avgLast10Days = (last10Days?.reduce((sum , expense) => sum + expense?.ammo
         </div>
 
         {/* Last 10 Days Expenses - Bar Chart */}
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-200/50">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
+<div className="group bg-white/95 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-gray-200/50 overflow-hidden relative">
+  {/* Subtle gradient overlay on hover */}
+  <div className="absolute inset-0 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+  
+  <div className="relative z-10">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-2 sm:space-y-0">
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-gradient-to-r from-[#0081A7]/10 to-[#00B4D8]/10 rounded-xl group-hover:from-[#0081A7]/20 group-hover:to-[#00B4D8]/20 transition-all duration-300 border border-[#0081A7]/20">
+          <BarChart3 className="w-5 h-5 text-[#0081A7]" />
+        </div>
         <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Last 10 Days Expenses</h3>
-        <BarChart3 className="w-5 h-5 text-[#0081A7] self-start sm:self-auto" />
+      </div>
+      <div className="flex items-center space-x-2">
+        <div className="w-2 h-2 bg-gradient-to-r from-[#0081A7] to-[#00B4D8] rounded-full animate-pulse"></div>
+        <span className="text-sm text-gray-500 font-medium">Live Data</span>
+      </div>
+    </div>
+    
+    <div className="h-48 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-xl flex items-center justify-center border border-[#0081A7]/10 group-hover:border-[#0081A7]/20 transition-all duration-300 shadow-inner">
+      <div className="w-full px-2 sm:px-4">
+        <BarChart labels={chartData.labels} values={chartData.data} />
+      </div>
+    </div>
+    
+    <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div className="group/card text-center p-4 bg-gradient-to-br from-red-50/80 to-red-100/50 rounded-xl border border-red-100 hover:border-red-200 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md">
+        <div className="flex items-center justify-center mb-2">
+          <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-red-600 rounded-full mr-2"></div>
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Today</p>
+        </div>
+        <p className="text-lg font-bold text-red-600">₹{chartData?.data[0] || 0}</p>
+        <div className="w-full bg-red-100 rounded-full h-1.5 mt-2">
+          <div className="bg-gradient-to-r from-red-500 to-red-600 h-1.5 rounded-full transition-all duration-500" style={{width: '85%'}}></div>
+        </div>
       </div>
       
-      <div className="h-48 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg flex items-center justify-center border border-[#0081A7]/10">
-        <div className="w-full px-2 sm:px-4">
-          <BarChart labels={chartData.labels} values={chartData.data} />
+      <div className="group/card text-center p-4 bg-gradient-to-br from-red-50/80 to-red-100/50 rounded-xl border border-red-100 hover:border-red-200 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md">
+        <div className="flex items-center justify-center mb-2">
+          <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-red-600 rounded-full mr-2"></div>
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Yesterday</p>
+        </div>
+        <p className="text-lg font-bold text-red-600">₹{chartData?.data[1] || 0}</p>
+        <div className="w-full bg-red-100 rounded-full h-1.5 mt-2">
+          <div className="bg-gradient-to-r from-red-500 to-red-600 h-1.5 rounded-full transition-all duration-500" style={{width: '70%'}}></div>
         </div>
       </div>
       
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="text-center p-3 bg-red-50/80 rounded-lg border border-red-100">
-          <p className="text-xs text-gray-500 mb-1">Today </p>
-          <p className="text-lg font-semibold text-red-600">₹{chartData?.data[0]}</p>
+      <div className="group/card text-center p-4 bg-gradient-to-br from-[#0081A7]/10 to-[#00B4D8]/10 rounded-xl border border-[#0081A7]/20 hover:border-[#0081A7]/30 transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md">
+        <div className="flex items-center justify-center mb-2">
+          <div className="w-3 h-3 bg-gradient-to-r from-[#0081A7] to-[#00B4D8] rounded-full mr-2"></div>
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Average</p>
         </div>
-        <div className="text-center p-3 bg-red-50/80 rounded-lg border border-red-100">
-          <p className="text-xs text-gray-500 mb-1">Yesterday</p>
-          <p className="text-lg font-semibold text-red-600">₹{chartData?.data[1]}</p>
-        </div>
-        <div className="text-center p-3 bg-red-50/80 rounded-lg border border-red-100">
-          <p className="text-xs text-gray-500 mb-1">Average</p>
-          <p className="text-lg font-semibold text-red-600">₹{avgLast10Days}</p>
+        <p className="text-lg font-bold text-[#0081A7]">₹{Math.round(avgLast10Days) || 0}</p>
+        <div className="w-full bg-[#0081A7]/20 rounded-full h-1.5 mt-2">
+          <div className="bg-gradient-to-r from-[#0081A7] to-[#00B4D8] h-1.5 rounded-full transition-all duration-500" style={{width: '60%'}}></div>
         </div>
       </div>
     </div>
+  </div>
+</div>
       </div>
 
 {/*Indome Modal */}

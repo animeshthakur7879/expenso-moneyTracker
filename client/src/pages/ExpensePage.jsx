@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import dayjs from "dayjs";
 import LineChart from '../components/DashboardComponents/LineChart';
 import LineChartExpense from '../components/DashboardComponents/LineChartExpense';
+import { convertToCSV } from '../utils/convertToCSV';
 
 
 const ExpensePage = () => {
@@ -190,6 +191,28 @@ const handleEdit = (expense) => {
           };
       
           const { labels: incomeLabels, values: incomeValues } = getCurrentMonthExpenseData(allExpenses);
+
+  //Download Expenses
+
+      const downloadFilteredExpenses = filteredExpenses.map((item) => ({
+    title: item.title,
+    amount: item.ammount,
+    createdAt: new Date(item.createdAt).toLocaleDateString(), // Only date
+  }));
+  
+  
+  //Downoad a CSV
+  const downloadCSV = (data, filename = "data.csv") => {
+    const csv = convertToCSV(data);
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+  
  
 
 
@@ -324,7 +347,7 @@ const handleEdit = (expense) => {
           </div>
 
           {/* Export Button */}
-          <button className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 flex items-center justify-center gap-2">
+          <button onClick={() => downloadCSV(downloadFilteredExpenses, "expense.csv")} className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 flex items-center justify-center gap-2">
             <Download className="w-4 h-4" />
             Export
           </button>

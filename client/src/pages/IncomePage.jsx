@@ -5,6 +5,7 @@ import { addIncome, deleteIncome, getAllIncomes, updateIncome } from '../feature
 import { toast } from 'react-toastify';
 import dayjs from "dayjs";
 import LineChart from '../components/DashboardComponents/LineChart';
+import { convertToCSV } from '../utils/convertToCSV';
 // import LineChart from '../components/DashboardComponents/LineChart';
 
 const IncomePage = () => {
@@ -189,6 +190,26 @@ const filteredIncomes = allIncomes
 
     // console.log(labels)
 
+    const downloadFilteredIncomes = filteredIncomes.map((item) => ({
+  title: item.title,
+  amount: item.ammount,
+  createdAt: new Date(item.createdAt).toLocaleDateString(), // Only date
+}));
+
+
+//Downoad a CSV
+const downloadCSV = (data, filename = "data.csv") => {
+  const csv = convertToCSV(data);
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50/90 to-[#0081A7]/5 p-6 ml-0 sm:ml-0 pt-20">
@@ -319,7 +340,7 @@ const filteredIncomes = allIncomes
           </div>
 
           {/* Export Button */}
-          <button className="px-4 py-2 bg-gradient-to-r from-[#00B4D8] to-[#0081A7] text-white rounded-lg hover:from-[#00B4D8]/90 hover:to-[#0081A7]/90 transition-all duration-300 flex items-center justify-center gap-2">
+          <button onClick={() => downloadCSV(downloadFilteredIncomes, "incomes.csv")} className="px-4 py-2 bg-gradient-to-r from-[#00B4D8] to-[#0081A7] text-white rounded-lg hover:from-[#00B4D8]/90 hover:to-[#0081A7]/90 transition-all duration-300 flex items-center justify-center gap-2">
             <Download className="w-4 h-4" />
             Export
           </button>
