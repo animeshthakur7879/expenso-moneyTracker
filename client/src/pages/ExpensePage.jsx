@@ -4,6 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { addExpense, deleteExpense, getAllExpenses, updateExpense } from '../features/expense/expenseSlice';
 import { toast } from 'react-toastify';
+import dayjs from "dayjs";
+import LineChart from '../components/DashboardComponents/LineChart';
+import LineChartExpense from '../components/DashboardComponents/LineChartExpense';
+
 
 const ExpensePage = () => {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -154,6 +158,38 @@ const handleEdit = (expense) => {
         await dispatch(deleteExpense(selectedExpense._id))
         toast.success("Expense Deleted")
       }
+
+      //For Line Chart
+      
+            const getCurrentMonthExpenseData = (allExpenses) => {
+            const currentMonth = dayjs().month();
+            const currentYear = dayjs().year();
+      
+            // Filter for this month's incomes
+            const filtered = allExpenses.filter((income) => {
+              const date = dayjs(income.createdAt);
+              return date.month() === currentMonth && date.year() === currentYear;
+            });
+      
+            // Create map of days with totals
+            const dailyIncome = {};
+      
+            for (let i = 1; i <= dayjs().date(); i++) {
+              dailyIncome[i] = 0; // Initialize days with 0
+            }
+      
+            filtered.forEach((income) => {
+              const day = dayjs(income.createdAt).date();
+              dailyIncome[day] += income.ammount;
+            });
+      
+            const labels = Object.keys(dailyIncome).map((day) => `Jul ${day}`);
+            const values = Object.values(dailyIncome);
+      
+            return { labels, values };
+          };
+      
+          const { labels: incomeLabels, values: incomeValues } = getCurrentMonthExpenseData(allExpenses);
  
 
 
@@ -351,6 +387,18 @@ const handleEdit = (expense) => {
         </div>
       </div>
 
+      {/* Income Overview - Line Chart */}
+      <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50 mt-8">
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">Expense Trend (This Month)</h3>
+            <p className="text-sm text-gray-500">Visual representation of your expense day-by-day for this month.</p>
+          </div>
+
+          <div className="w-full overflow-x-auto">
+            <LineChartExpense labels={incomeLabels} values={incomeValues} />
+          </div>
+        </div>
+
       {/* Add Expense Modal */}
       {isOpenModal && (
         <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/30 backdrop-blur-sm">
@@ -391,7 +439,7 @@ const handleEdit = (expense) => {
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder="Enter income title"
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/100 bg-gray-50 text-gray-800"
                   required
                 />
               </div>
@@ -408,7 +456,7 @@ const handleEdit = (expense) => {
                   value={formData.ammount}
                   onChange={handleInputChange}
                   placeholder="Enter amount"
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/100 bg-gray-50 text-gray-800"
                   required
                 />
               </div>

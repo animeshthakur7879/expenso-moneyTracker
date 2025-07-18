@@ -3,6 +3,9 @@ import { TrendingUp, Plus, Calendar, Search, Filter, Download, Edit2, Trash2, Ey
 import { useDispatch, useSelector } from 'react-redux';
 import { addIncome, deleteIncome, getAllIncomes, updateIncome } from '../features/income/incomeSlice';
 import { toast } from 'react-toastify';
+import dayjs from "dayjs";
+import LineChart from '../components/DashboardComponents/LineChart';
+// import LineChart from '../components/DashboardComponents/LineChart';
 
 const IncomePage = () => {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -152,6 +155,40 @@ const filteredIncomes = allIncomes
     }
   });
 
+  //For Line Chart
+
+      const getCurrentMonthIncomeData = (allIncomes) => {
+      const currentMonth = dayjs().month();
+      const currentYear = dayjs().year();
+
+      // Filter for this month's incomes
+      const filtered = allIncomes.filter((income) => {
+        const date = dayjs(income.createdAt);
+        return date.month() === currentMonth && date.year() === currentYear;
+      });
+
+      // Create map of days with totals
+      const dailyIncome = {};
+
+      for (let i = 1; i <= dayjs().date(); i++) {
+        dailyIncome[i] = 0; // Initialize days with 0
+      }
+
+      filtered.forEach((income) => {
+        const day = dayjs(income.createdAt).date();
+        dailyIncome[day] += income.ammount;
+      });
+
+      const labels = Object.keys(dailyIncome).map((day) => `Jul ${day}`);
+      const values = Object.values(dailyIncome);
+
+      return { labels, values };
+    };
+
+    const { labels: incomeLabels, values: incomeValues } = getCurrentMonthIncomeData(allIncomes);
+
+    // console.log(labels)
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50/90 to-[#0081A7]/5 p-6 ml-0 sm:ml-0 pt-20">
@@ -290,7 +327,7 @@ const filteredIncomes = allIncomes
       </div>
 
       {/* Income List */}
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
+      <div className="bg-white/95 mb-10 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
         <div className="p-6 border-b border-gray-200/50">
           <h3 className="text-xl font-semibold text-gray-800">Income Transactions</h3>
         </div>
@@ -345,6 +382,22 @@ const filteredIncomes = allIncomes
           </table>
         </div>
       </div>
+
+      {/* <LineChart allIncomes={allIncomes} /> */}
+      {/* Income Overview - Line Chart */}
+      <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50 mt-8">
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">Income Trend (This Month)</h3>
+            <p className="text-sm text-gray-500">Visual representation of your income day-by-day for this month.</p>
+          </div>
+
+          <div className="w-full overflow-x-auto">
+            <LineChart labels={incomeLabels} values={incomeValues} />
+          </div>
+        </div>
+
+
+
 
       {/* Add Income Modal */}
       {isOpenModal && (

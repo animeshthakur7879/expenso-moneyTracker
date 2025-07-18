@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { TrendingUp, DollarSign, CreditCard, Eye, Plus, BarChart3, PieChart, Calendar, Activity, Clock } from 'lucide-react';
+import { TrendingUp, DollarSign, CreditCard, Eye, Plus, BarChart3 , Calendar, Activity, Clock, PieChartIcon } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { addIncome, getAllIncomes } from '../features/income/incomeSlice';
 import { addExpense, getAllExpenses } from '../features/expense/expenseSlice';
 import { toast } from 'react-toastify';
 import { getallTransactions } from '../features/transaction/transactionSlice';
+import PieChart from '../components/DashboardComponents/PieChart';
+import BarChart from '../components/DashboardComponents/BarChart';
 
 const Dashboard = () => {
    const [isOpenIncome, setIsOpenIncome] = useState(false);
@@ -39,6 +41,10 @@ const Dashboard = () => {
   const closeModal = () => {setIsOpenIncome(false) , setIsOpenExpense(false)};
 
   const [render , setRender] = useState(false)
+  // const [last30DaysExpense , setLast30DaysExpense] = useState([{
+  //   date : '' , 
+  //   ammount : ''
+  // }])
 
   const dispatch = useDispatch()
 
@@ -53,38 +59,88 @@ const Dashboard = () => {
     
   } , [dispatch , render])
 
+  
   // console.log(allIncomes)
   // console.log(allExpenses)
-  console.log(transactions)
-
+  // console.log(transactions)
+  
   const totalIncome = allIncomes?.reduce((sum , income) => sum + income?.ammount , 0)
   const totalExpense = allExpenses?.reduce((sum , income) => sum + income?.ammount , 0)
   const totalBalance = totalIncome-totalExpense
-
+  
   // const setDetails = () => {
   //   var totalIncome = allIncomes?.reduce((sum , income) => sum + income?.ammount , 0)
   //   var totalExpense = allExpenses?.reduce((sum , income) => sum + income?.ammount , 0)
   //   var totalBalance = totalIncome-totalExpense
   // }
- 
+  
   //DATE to HOUR
   const dateToHour = (createdAt) => {
     const createdDate  = new Date(createdAt)
-  // Get current time in IST
-      const now = new Date();
-
-      // Shift both times to IST by adding 5.5 hours
-      const createdIST = new Date(createdDate.getTime() + (5.5 * 60 * 60 * 1000));
-      const nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-
-      // Calculate difference in milliseconds
-      const diffMs = nowIST - createdIST;
-
-      // Convert milliseconds to hours
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-
-      return diffHours
+    // Get current time in IST
+    const now = new Date();
+    
+    // Shift both times to IST by adding 5.5 hours
+    const createdIST = new Date(createdDate.getTime() + (5.5 * 60 * 60 * 1000));
+    const nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    
+    // Calculate difference in milliseconds
+    const diffMs = nowIST - createdIST;
+    
+    // Convert milliseconds to hours
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    
+    return diffHours
   }
+  
+  //SET LAST 30 DAYS EXPENSE
+      const getLast30DaysExpenses = (allExpenses) => {
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 10);
+
+        const filtered = allExpenses.filter(exp => {
+          const createdAtDate = new Date(exp.createdAt);
+          return createdAtDate >= thirtyDaysAgo && createdAtDate <= today;
+        });
+
+        return filtered;
+      };
+
+      //Group Data for barchart
+      const groupByDate = (data) => {
+        const map = {};
+
+        data.forEach(exp => {
+          const date = new Date(exp.createdAt);
+          const label = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+          if (map[label]) {
+            map[label] += exp.ammount;
+          } else {
+            map[label] = exp.ammount;
+          }
+        });
+
+        return {
+          labels: Object.keys(map),
+          data: Object.values(map),
+        };
+      };
+
+      const last10Days = getLast30DaysExpenses(allExpenses);
+      const chartData = groupByDate(last10Days);
+
+//       console.log(chartData.labels);
+// console.log(chartData.data);
+
+//Average Of Last 10 days \
+const avgLast10Days = (last10Days?.reduce((sum , expense) => sum + expense?.ammount ,  0))/10
+
+// console.log(avgLast10Days)
+
+
+
 
   //Add Income
   const handleAddIncome = async(e) => {
@@ -212,16 +268,22 @@ const Dashboard = () => {
         {/* Financial Overview - Pie Chart */}
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-800">Financial Overview</h3>
-            <PieChart className="w-5 h-5 text-[#0081A7]" />
+            {
+              totalIncome ? ( <PieChart income={totalIncome} expenses={totalExpense} balance={totalBalance} />
+)
+                          : (
+                            <div className="h-48 w-100 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg flex items-center justify-center border border-[#0081A7]/10">
+                              <div className="text-center">
+                                <PieChartIcon className="w-12 h-12 text-[#0081A7] mx-auto mb-2" />
+                                <div className="text-[#0081A7] text-sm font-medium">Pie Chart</div>
+                                <div className="text-gray-500 text-xs">Add Income/Expense to visualize the data</div>
+                              </div>
+                            </div>
+                          )
+            }
+
           </div>
-          <div className="h-48 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg flex items-center justify-center border border-[#0081A7]/10">
-            <div className="text-center">
-              <PieChart className="w-12 h-12 text-[#0081A7] mx-auto mb-2" />
-              <div className="text-[#0081A7] text-sm font-medium">Pie Chart</div>
-              <div className="text-gray-500 text-xs">Visualization will go here</div>
-            </div>
-          </div>
+          
         </div>
 
         {/* Recent Transactions */}
@@ -315,34 +377,34 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Last 30 Days Expenses - Bar Chart */}
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-800">Last 30 Days Expenses</h3>
-            <BarChart3 className="w-5 h-5 text-[#0081A7]" />
-          </div>
-          <div className="h-48 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg flex items-center justify-center border border-[#0081A7]/10">
-            <div className="text-center">
-              <BarChart3 className="w-12 h-12 text-[#0081A7] mx-auto mb-2" />
-              <div className="text-[#0081A7] text-sm font-medium">Bar Chart</div>
-              <div className="text-gray-500 text-xs">30-day expense visualization</div>
-            </div>
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-4">
-            <div className="text-center p-3 bg-gradient-to-r from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg border border-[#0081A7]/10">
-              <p className="text-xs text-gray-500 mb-1">This Week</p>
-              <p className="text-lg font-semibold text-[#0081A7]">$485</p>
-            </div>
-            <div className="text-center p-3 bg-gradient-to-r from-[#00B4D8]/5 to-[#0081A7]/5 rounded-lg border border-[#00B4D8]/10">
-              <p className="text-xs text-gray-500 mb-1">Last Week</p>
-              <p className="text-lg font-semibold text-[#00B4D8]">$625</p>
-            </div>
-            <div className="text-center p-3 bg-red-50/80 rounded-lg border border-red-100">
-              <p className="text-xs text-gray-500 mb-1">Average</p>
-              <p className="text-lg font-semibold text-red-600">$520</p>
-            </div>
-          </div>
+        {/* Last 10 Days Expenses - Bar Chart */}
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-200/50">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Last 10 Days Expenses</h3>
+        <BarChart3 className="w-5 h-5 text-[#0081A7] self-start sm:self-auto" />
+      </div>
+      
+      <div className="h-48 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg flex items-center justify-center border border-[#0081A7]/10">
+        <div className="w-full px-2 sm:px-4">
+          <BarChart labels={chartData.labels} values={chartData.data} />
         </div>
+      </div>
+      
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="text-center p-3 bg-red-50/80 rounded-lg border border-red-100">
+          <p className="text-xs text-gray-500 mb-1">Today </p>
+          <p className="text-lg font-semibold text-red-600">₹{chartData?.data[0]}</p>
+        </div>
+        <div className="text-center p-3 bg-red-50/80 rounded-lg border border-red-100">
+          <p className="text-xs text-gray-500 mb-1">Yesterday</p>
+          <p className="text-lg font-semibold text-red-600">₹{chartData?.data[1]}</p>
+        </div>
+        <div className="text-center p-3 bg-red-50/80 rounded-lg border border-red-100">
+          <p className="text-xs text-gray-500 mb-1">Average</p>
+          <p className="text-lg font-semibold text-red-600">₹{avgLast10Days}</p>
+        </div>
+      </div>
+    </div>
       </div>
 
 {/*Indome Modal */}
