@@ -6,6 +6,7 @@ import IncomePage from './pages/IncomePage';
 import ExpensePage from './pages/ExpensePage';
 import DashboardLayout from './Layout/DashboardLayout';
 import PrivateRoute from '../src/components/PrivateRoutes';
+import FinSight from './pages/FinSight';
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
             <Route index element={<Dashboard />} />
             <Route path="income" element={<IncomePage />} />
             <Route path="expenses" element={<ExpensePage />} />
+            <Route path="finsight" element={<FinSight />} />
           </Route>
         </Route>
 

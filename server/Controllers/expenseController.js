@@ -17,15 +17,15 @@ const getAllExpenses = expressAsyncHandler(async(req , res) => {
 
 const addExpense =  expressAsyncHandler(async(req , res) => {
 
-    const {title , ammount} = req.body
+    const {title , ammount , category} = req.body
     
-    if(!title || !ammount) {
+    if(!title || !ammount || !category) {
         res.status(400)
         throw new Error("Please fill all the details")
     }
 
     const expense = await Expense.create({
-        user : req.user._id , title , ammount
+        user : req.user._id , title , ammount , category
     })
 
     if(!expense){

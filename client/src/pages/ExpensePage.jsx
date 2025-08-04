@@ -20,6 +20,7 @@ const ExpensePage = () => {
   const [formData, setFormData] = useState({
     title: '',
     ammount: '',
+    category : ''
   
   });
 
@@ -55,7 +56,8 @@ const ExpensePage = () => {
         toast.success("Expense Added")
         setFormData({
           title : '', 
-          ammount : ''
+          ammount : '' ,
+          category : ''
         })
         // setIsEdit(false)
       }
@@ -73,12 +75,13 @@ const ExpensePage = () => {
   };
 
   const toggleModal = () => setIsOpenModal(!isOpenModal);
-  const closeModal = () => {setIsOpenModal(false) , setFormData({title : "" , ammount : "" }) , setIsOpenDelete(false)};
+  const closeModal = () => {setIsOpenModal(false) , setFormData({title : "" , ammount : "" , category : ""}) , setIsOpenDelete(false)};
 
 const handleEdit = (expense) => {
       setFormData({
         title : expense.title , 
-        ammount : expense.ammount
+        ammount : expense.ammount ,
+        category : expense.category
       })
 
       setIsEdit(true)
@@ -381,6 +384,7 @@ const handleEdit = (expense) => {
                      
                       <div>
                         <div className="text-sm font-medium text-gray-900">{expense?.title}</div>
+                        <div className="text-xs  text-gray-500">{expense?.category}</div>
                       </div>
                     </div>
                   </td>
@@ -466,6 +470,30 @@ const handleEdit = (expense) => {
                   required
                 />
               </div>
+
+              {/* Category */}
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                    Category
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/100 bg-gray-50 text-gray-800"
+                    required
+                  >
+                    <option value="" disabled>Select category</option>
+                    <option value="food">Food</option>
+                    <option value="rent">Rent</option>
+                    <option value="travel">Travel</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="shopping">Shopping</option>
+                    <option value="others">Others</option>
+                  </select>
+                </div>
+
 
 
               <div>

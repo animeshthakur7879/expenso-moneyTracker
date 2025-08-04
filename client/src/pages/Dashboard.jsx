@@ -15,7 +15,8 @@ const Dashboard = () => {
 
    const [formData , setFormData] = useState({
     title : '' , 
-    ammount : ''
+    ammount : '' , 
+    category : ''
    })
 
   //  const handleInputChange = (e) => {
@@ -167,7 +168,8 @@ const avgLast10Days = (last10Days?.reduce((sum , expense) => sum + expense?.ammo
 
     setFormData({
       title : '', 
-      ammount : ''
+      ammount : '' ,
+      category : ''
     })
   }
 
@@ -533,11 +535,11 @@ const avgLast10Days = (last10Days?.reduce((sum , expense) => sum + expense?.ammo
 
             {/* Modal Header */}
             <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-              Add New Entry
+             Add New Expense
             </h3>
 
             {/* Modal Form */}
-            <form onSubmit={(e) => handleAddExpense(e)} className="space-y-4">
+            <div className="space-y-4">
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                   Title
@@ -548,35 +550,61 @@ const avgLast10Days = (last10Days?.reduce((sum , expense) => sum + expense?.ammo
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="Enter title"
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  placeholder="Enter income title"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/100 bg-gray-50 text-gray-800"
                   required
                 />
               </div>
 
+              {/* Category */}
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                    Category
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/100 bg-gray-50 text-gray-800"
+                    required
+                  >
+                    <option value="" disabled>Select category</option>
+                    <option value="food">Food</option>
+                    <option value="rent">Rent</option>
+                    <option value="travel">Travel</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="shopping">Shopping</option>
+                    <option value="others">Others</option>
+                  </select>
+                </div>
+
+
+
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Ammount
+                <label htmlFor="ammount" className="block text-sm font-medium text-gray-700">
+                  Amount
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   id="ammount"
                   name="ammount"
                   value={formData.ammount}
                   onChange={handleInputChange}
-                  placeholder="Enter title"
-                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0081A7]/50 bg-gray-50 text-gray-800"
+                  placeholder="Enter amount"
+                  className="w-full mt-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/100 bg-gray-50 text-gray-800"
                   required
                 />
               </div>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleAddExpense}
                 className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg"
               >
                 Add Expense
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}

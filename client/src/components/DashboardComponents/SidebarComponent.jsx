@@ -7,7 +7,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  User
+  User,
+  InspectIcon
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +31,7 @@ const SidebarComponent = () => {
     { icon: LayoutDashboard, label: 'Dashboard', onClick: () => navigate('/dashboard'), active: true },
     { icon: TrendingUp, label: 'Income', onClick: () => navigate('/dashboard/income') },
     { icon: TrendingDown, label: 'Expenses', onClick: () => navigate('/dashboard/expenses') },
+    { icon: InspectIcon, label: 'Fin-Sight', onClick: () => navigate('/dashboard/finsight') },
     { icon: LogOut, label: 'Logout', onClick: handleLogout }
   ];
 
