@@ -8,7 +8,7 @@ const getallTransactions = async(token) => {
         }
     }
 
-    const response = await  axios.get(`/api/finance` , options)
+    const response = await  axios.get(`${api}/finance` , options)
 
     return response.data
 

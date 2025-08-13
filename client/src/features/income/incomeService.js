@@ -1,4 +1,5 @@
 import axios from "axios"
+import { api } from "../../api/api"
 
 const getAllIncomes = async(token) => {
 
@@ -8,7 +9,7 @@ const getAllIncomes = async(token) => {
         }
     }
 
-    const response = await  axios.get(`/api/income` , options)
+    const response = await  axios.get(`${api}/income` , options)
 
     return response.data
 
@@ -23,7 +24,7 @@ const addIncome = async(formData , token) => {
         }
     }
 
-    const response = await  axios.post(`/api/income` , formData ,options)
+    const response = await  axios.post(`${api}/income` , formData ,options)
 
     return response.data
     // console.log(response.data)
@@ -42,7 +43,7 @@ const updateIncome = async(formData , iid ,  token) => {
         }
     }
 
-    const response = await  axios.put(`/api/income/${iid}` , formData ,options)
+    const response = await  axios.put(`${api}/income/${iid}` , formData ,options)
 
     return response.data
     // console.log(response.data)
@@ -61,7 +62,7 @@ const deleteIncome = async(iid ,  token) => {
         }
     }
 
-    const response = await  axios.delete(`/api/income/${iid}` , options)
+    const response = await  axios.delete(`${api}/income/${iid}` , options)
 
     return response.data
     // console.log(response.data)

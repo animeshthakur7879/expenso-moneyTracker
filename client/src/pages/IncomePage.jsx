@@ -180,7 +180,7 @@ const filteredIncomes = allIncomes
         dailyIncome[day] += income.ammount;
       });
 
-      const labels = Object.keys(dailyIncome).map((day) => `Jul ${day}`);
+      const labels = Object.keys(dailyIncome).map((day) => `${day}`);
       const values = Object.values(dailyIncome);
 
       return { labels, values };

@@ -94,6 +94,7 @@ const FinSight = () => {
                     </h1>
                 </div>
                 <p className="text-gray-600 ml-1">Your personal AI-powered financial analyst</p>
+                <p className="text-gray-600 ml-1">Coming Soon !!</p>
             </div>
 
             {/* Main Content Grid */}
