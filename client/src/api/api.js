@@ -1,1 +1,1 @@
-export const api = 'https://expenso-moneytracker-backend.onrender.com'
+export const api = 'https://expenso-moneytracker-backend.onrender.com/api'
