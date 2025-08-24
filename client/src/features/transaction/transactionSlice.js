@@ -5,6 +5,7 @@ const transactionSlice = createSlice(
     {
         name : "transaction" , 
         initialState : {
+            transaction : {} ,
             transactions : [] ,
             isSuccess : false , 
             isError : false , 
@@ -40,6 +41,7 @@ export const getallTransactions = createAsyncThunk(
     "GET/TRANSACTIONS" , 
     async (_ , thunkAPI) => {
         let token = thunkAPI.getState().auth.user.token
+        // console.log(token)
         try {
             return await financeService.getallTransactions(token)
         } catch (error) {

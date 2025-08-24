@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, Bot, Send, Target, Calendar, TrendingUp, Loader2 } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getallTransactions } from '../features/transaction/transactionSlice';
+import { generateAIReport, generatePersonalChat, generateSavingAdvisor } from '../features/ai/aiSlice';
+
 
 const FinSight = () => {
     // State for the AI-generated monthly report
@@ -9,36 +13,63 @@ const FinSight = () => {
     // State for the conversational Q&A feature
     const [chatHistory, setChatHistory] = useState([]);
     const [userQuery, setUserQuery] = useState('');
-    const [isChatLoading, setIsChatLoading] = useState(false);
+    // const [isChatLoading, setIsChatLoading] = useState(false);
 
     // State for the savings goal advisor
     const [goal, setGoal] = useState({ name: '', amount: '' });
     const [advice, setAdvice] = useState('');
-    const [isAdviceLoading, setIsAdviceLoading] = useState(false);
+    // const [isAdviceLoading, setIsAdviceLoading] = useState(false);
 
-    // --- SIMULATED GEMINI API CALLS ---
-    // In a real application, these functions would make API calls to your backend,
-    // which then securely communicates with the Gemini API.
+    //AI LOGICS
+    const {transactions} = useSelector(state => state.transaction)
+    const {aiPlan ,  aiReport, isLoading, isAdviceLoading , isError, isSuccess, message , aiChat , isChatLoading} = useSelector(state => state.ai)
+        
+        const dispatch = useDispatch();
 
-    /**
-     * Simulates fetching a narrative financial summary from the AI.
-     */
-    const handleGenerateReport = async () => {
-        setIsReportLoading(true);
-        setReport(''); // Clear previous report
+        const [htmlReport, setHtmlReport] = useState("");
+        const [htmlPlan, setHtmlPlan] = useState("");
 
-        // TODO: Replace with actual API call to your backend
-        // Your backend would fetch user's financial data and send it to Gemini.
-        setTimeout(() => {
-            const sampleReport = `
-                <p class="mb-2">Overall, July was a strong month. Your total income was <strong>₹85,000</strong> and you spent <strong>₹66,500</strong>, resulting in a savings of <strong>₹18,500</strong>. Well done on managing to save over 21% of your income!</p>
-                <p class="mb-2">Your top three spending areas were 'Rent' (₹20,000), a significant one-time 'Phone Repair' (₹9,000), and 'Groceries' (₹8,500). Your total spending was higher than your average, mainly due to the repair and a slight increase in 'Shopping'.</p>
-                <p>It's great to see your consistent 'Investment (SIP)' of ₹5,000! For next month, consider setting a specific budget for 'Dining Out' to potentially increase your savings rate even further.</p>
-            `;
-            setReport(sampleReport);
-            setIsReportLoading(false);
-        }, 2000); // Simulate network delay
-    };
+        // Fetch all transactions when component mounts
+        useEffect(() => {
+        dispatch(getallTransactions());
+        }, [dispatch]);
+
+        //Formate the Report 
+        useEffect(() => {
+        if (isSuccess && aiReport) {
+            // aiReport looks like: { report: "```html ... ```" }
+            let rawReport = aiReport || "";
+            let cleanReport = rawReport.replace(/```html|```/g, ""); // strip markdown fences
+            setHtmlReport(cleanReport);
+        }
+
+        if (isError) {
+            console.error(message);
+        }
+        }, [isSuccess, isError, aiReport, message]);
+
+        //Formate the Plan 
+        useEffect(() => {
+        if (isSuccess && aiPlan) {
+            // aiReport looks like: { report: "```html ... ```" }
+            let rawPlan = aiPlan || "";
+            let cleanPlan = rawPlan.replace(/```html|```/g, ""); // strip markdown fences
+            setHtmlPlan(cleanPlan);
+        }
+
+        if (isError) {
+            console.error(message);
+        }
+        }, [isSuccess, isError, aiPlan, message]);
+
+        // console.log(htmlReport)
+
+        // Generate report
+        const handleGenerateReport = () => {
+            dispatch(generateAIReport());
+        };
+
+        // Whenever aiReport updates, clean it up & set into htmlReport
 
     /**
      * Simulates sending a user query to the AI and getting a response.
@@ -50,39 +81,49 @@ const FinSight = () => {
         const newHistory = [...chatHistory, { type: 'user', text: userQuery }];
         setChatHistory(newHistory);
         setUserQuery('');
-        setIsChatLoading(true);
+        // setIsChatLoading(true);
 
         // TODO: Replace with actual API call to your backend
-        setTimeout(() => {
-            const sampleResponse = "Your expenses last month were higher mainly because of a ₹9,000 charge for 'Phone Repair'. Your spending on 'Shopping' also increased by about 30% compared to your recent average. Your regular costs like 'Rent' and 'Utilities' remained stable.";
-            setChatHistory([...newHistory, { type: 'ai', text: sampleResponse }]);
-            setIsChatLoading(false);
-        }, 1500);
+        // setTimeout(() => {
+        //     const sampleResponse = "Your expenses last month were higher mainly because of a ₹9,000 charge for 'Phone Repair'. Your spending on 'Shopping' also increased by about 30% compared to your recent average. Your regular costs like 'Rent' and 'Utilities' remained stable.";
+        //     setChatHistory([...newHistory, { type: 'ai', text: sampleResponse }]);
+        //     // setIsChatLoading(false);
+        // }, 1500);
+
+        dispatch(generatePersonalChat(userQuery))
+        // setChatHistory([...newHistory, { type: 'ai', text: aiChat }]);
+
     };
+
+    useEffect(() => {
+        if(isSuccess && aiChat) {
+            setChatHistory([...chatHistory , {type : 'ai' , text : aiChat} ])
+        }
+
+        if(isError) {
+            console.log(message)
+        }
+    } , [isError , isSuccess , aiChat , message])
 
     /**
      * Simulates generating a personalized savings plan from the AI.
      */
-    const handleGenerateAdvice = async () => {
-        if (!goal.name || !goal.amount || isAdviceLoading) return;
-        setIsAdviceLoading(true);
-        setAdvice('');
+    const handleGenerateAdvice = () => {
+        if (!goal.name || !goal.amount) return;
 
-        // TODO: Replace with actual API call to your backend
-        setTimeout(() => {
-            const sampleAdvice = `
-                <p class="mb-3">Saving <strong>₹${parseInt(goal.amount).toLocaleString('en-IN')}</strong> for your <strong>'${goal.name}'</strong> goal is very achievable! Here’s a personalized plan based on your habits:</p>
-                <ul class="list-disc list-inside space-y-2 text-gray-600">
-                    <li><strong>Dining Out:</strong> You average ₹6,000/month here. By meal-prepping for weekdays, you could save around <strong>₹3,000</strong>.</li>
-                    <li><strong>Shopping:</strong> Consider a 'no-spend' challenge for 15 days. This could free up another <strong>₹2,500 - ₹3,000</strong>.</li>
-                    <li><strong>Transport:</strong> Using the metro for your commute 2-3 times a week could save you up to <strong>₹1,500</strong>.</li>
-                </ul>
-                <p class="mt-3 font-semibold text-[#0081A7]">Focusing on these areas can help you reach your goal quickly!</p>
-            `;
-            setAdvice(sampleAdvice);
-            setIsAdviceLoading(false);
-        }, 2500);
+        const formData = {
+            goal: goal.name,
+            amount: goal.amount
+        };
+
+        // console.log(formData)
+
+        dispatch(generateSavingAdvisor(formData));
     };
+
+    
+
+    // console.log(transactions)
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-50/90 to-[#0081A7]/5 p-6 ml-0 sm:ml-0 pt-20'>
@@ -94,7 +135,7 @@ const FinSight = () => {
                     </h1>
                 </div>
                 <p className="text-gray-600 ml-1">Your personal AI-powered financial analyst</p>
-                <p className="text-gray-600 ml-1">Coming Soon !!</p>
+                <p className="text-gray-600 ml-1">More Features Coming Soon !!</p>
             </div>
 
             {/* Main Content Grid */}
@@ -103,30 +144,52 @@ const FinSight = () => {
                 {/* Left Column: Reports and Savings Advisor */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* 1. Intelligent Monthly Report */}
-                    <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">
+                     <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-gray-200/50">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-3 bg-gradient-to-r from-[#0081A7]/10 to-[#00B4D8]/10 rounded-xl border border-[#0081A7]/20">
-                                    <Calendar className="w-6 h-6 text-[#0081A7]" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-semibold text-gray-800">Intelligent Report</h3>
-                                    <p className="text-sm text-gray-500">Get a narrative summary of your finances.</p>
-                                </div>
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-gradient-to-r from-[#0081A7]/10 to-[#00B4D8]/10 rounded-xl border border-[#0081A7]/20">
+                            <Calendar className="w-6 h-6 text-[#0081A7]" />
                             </div>
-                            <button
-                                onClick={handleGenerateReport}
-                                disabled={isReportLoading}
-                                className="px-4 py-2 bg-gradient-to-r from-[#0081A7] to-[#00B4D8] text-white rounded-xl hover:from-[#0081A7]/90 hover:to-[#00B4D8]/90 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            >
-                                {isReportLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                                <span>{isReportLoading ? 'Analyzing...' : 'Generate'}</span>
-                            </button>
+                            <div>
+                            <h3 className="text-xl font-semibold text-gray-800">
+                                Intelligent Report
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                                Get a narrative summary of your finances.
+                            </p>
+                            </div>
                         </div>
+                        <button
+                            onClick={handleGenerateReport}
+                            disabled={isLoading}
+                            className="px-4 py-2 bg-gradient-to-r from-[#0081A7] to-[#00B4D8] text-white rounded-xl hover:from-[#0081A7]/90 hover:to-[#00B4D8]/90 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            {isLoading ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                            <Sparkles className="w-5 h-5" />
+                            )}
+                            <span>{isLoading ? "Analyzing..." : "Generate"}</span>
+                        </button>
+                        </div>
+
                         <div className="mt-4 p-4 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg border border-[#0081A7]/10 min-h-[150px] flex items-center justify-center">
-                            {isReportLoading && <Loader2 className="w-8 h-8 text-[#0081A7] animate-spin" />}
-                            {report && !isReportLoading && <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: report }} />}
-                            {!report && !isReportLoading && <p className="text-gray-500 text-center">Click 'Generate' to get your AI-powered financial report.</p>}
+                        {isLoading && (
+                            <Loader2 className="w-8 h-8 text-[#0081A7] animate-spin" />
+                        )}
+
+                        {htmlReport && !isLoading && (
+                            <div
+                            className="text-gray-700 w-full"
+                            dangerouslySetInnerHTML={{ __html: htmlReport }}
+                            />
+                        )}
+
+                        {!htmlReport && !isLoading && (
+                            <p className="text-gray-500 text-center">
+                            Click 'Generate' to get your AI-powered financial report.
+                            </p>
+                        )}
                         </div>
                     </div>
 
@@ -167,9 +230,19 @@ const FinSight = () => {
                         </div>
                          <div className="mt-4 p-4 bg-gradient-to-br from-[#0081A7]/5 to-[#00B4D8]/5 rounded-lg border border-[#0081A7]/10 min-h-[150px] flex items-center justify-center">
                             {isAdviceLoading && <Loader2 className="w-8 h-8 text-[#0081A7] animate-spin" />}
-                            {advice && !isAdviceLoading && <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: advice }} />}
-                            {!advice && !isAdviceLoading && <p className="text-gray-500 text-center">Define your goal and click 'Get Advice' for a personalized savings plan.</p>}
+                            {aiPlan && !isAdviceLoading && (
+                                <div className="text-gray-700 w-full" dangerouslySetInnerHTML={{ __html: htmlPlan }} />
+                            )}
+                            {!aiPlan && !isAdviceLoading && (
+                                <p className="text-gray-500 text-center">
+                                Define your goal and click 'Get Advice' for a personalized savings plan.
+                                </p>
+                            )}
+                            {isError && (
+                                <p className="text-red-500 text-center">{aiPlan}</p>
+                            )}
                         </div>
+
                     </div>
                 </div>
 
