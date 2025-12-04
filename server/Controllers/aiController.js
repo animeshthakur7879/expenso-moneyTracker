@@ -65,7 +65,7 @@ Everything is in ruppees
 Provide the report only in HTML.
 `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const result = await model.generateContent(prompt);
   let report = result.response.text();
@@ -150,7 +150,7 @@ const savingAdvisor = expressAsyncHandler(async (req , res) => {
   - Ensure the final output is valid HTML only (no markdown fences).
       `;
 
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       const result = await model.generateContent(prompt);
       let plan = result.response.text();
@@ -229,7 +229,7 @@ const personalChat = expressAsyncHandler(async (req , res) => {
 
       // const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       const aiResponse = await model.generateContent(prompt);
       let aiMessage = aiResponse.response.text();
